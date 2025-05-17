@@ -136,40 +136,40 @@ export class UIExampleFactory {
     doc.getElementById("zotero-item-pane-content")?.classList.add("makeItRed");
   }
 
-  // @example
-  // static registerRightClickMenuItem() {
-  //   const menuIcon = `chrome://${addon.data.config.addonRef}/content/icons/favicon@0.5x.png`;
-  //   // item menuitem with icon
-  //   ztoolkit.Menu.register("item", {
-  //     tag: "menuitem",
-  //     id: "zotero-itemmenu-addontemplate-test",
-  //     label: getString("menuitem-label"),
-  //     commandListener: (ev) => addon.hooks.onDialogEvents("dialogExample"),
-  //     icon: menuIcon,
-  //   });
-  // }
+  @example
+  static registerRightClickMenuItem() {
+    const menuIcon = `chrome://${addon.data.config.addonRef}/content/icons/favicon@0.5x.png`;
+    // item menuitem with icon
+    ztoolkit.Menu.register("item", {
+      tag: "menuitem",
+      id: "zotero-itemmenu-addontemplate-test",
+      label: getString("menuitem-label"),
+      commandListener: (ev) => addon.hooks.onDialogEvents("dialogExample"),
+      icon: menuIcon,
+    });
+  }
 
-  // @example
-  // static registerRightClickMenuPopup(win: Window) {
-  //   ztoolkit.Menu.register(
-  //     "item",
-  //     {
-  //       tag: "menu",
-  //       label: getString("menupopup-label"),
-  //       children: [
-  //         {
-  //           tag: "menuitem",
-  //           label: getString("menuitem-submenulabel"),
-  //           oncommand: "alert('Hello World! Sub Menuitem.')",
-  //         },
-  //       ],
-  //     },
-  //     "before",
-  //     win.document?.querySelector(
-  //       "#zotero-itemmenu-addontemplate-test",
-  //     ) as XUL.MenuItem,
-  //   );
-  // }
+  @example
+  static registerRightClickMenuPopup(win: Window) {
+    ztoolkit.Menu.register(
+      "item",
+      {
+        tag: "menu",
+        label: getString("menupopup-label"),
+        children: [
+          {
+            tag: "menuitem",
+            label: getString("menuitem-submenulabel"),
+            oncommand: "alert('Hello World! Sub Menuitem.')",
+          },
+        ],
+      },
+      "before",
+      win.document?.querySelector(
+        "#zotero-itemmenu-addontemplate-test",
+      ) as XUL.MenuItem,
+    );
+  }
 
   @example
   static registerWindowMenuWithSeparator() {

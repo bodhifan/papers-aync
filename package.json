@@ -2,10 +2,10 @@
   "name": "zotero-orsalab-sync",
   "type": "module",
   "version": "0.1.0",
-  "description": "Zotero-OrsaLab PDF 同步插件，用于将 Zotero 中的 PDF 文档及其元数据自动同步到 OrsaLab 知识库",
+  "description": "Papers Anyc PDF 同步插件，用于将 Zotero 中的 PDF 文档及其元数据自动同步到 Dify 知识库",
   "config": {
-    "addonName": "Zotero-OrsaLab Sync",
-    "addonID": "zotero-orsalab-sync@example.com",
+    "addonName": "Zotero-ORIC Sync",
+    "addonID": "zotero-orsalab-sync",
     "addonRef": "zoterodifysync",
     "addonInstance": "ZoteroDifySync",
     "prefsPrefix": "extensions.zotero.zotero-orsalab-sync"

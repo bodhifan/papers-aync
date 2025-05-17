@@ -28,9 +28,9 @@ async function onStartup() {
 
   BasicExampleFactory.registerPrefs();
 
-  BasicExampleFactory.registerNotifier();
+  // BasicExampleFactory.registerNotifier();
 
-  KeyExampleFactory.registerShortcuts();
+  // KeyExampleFactory.registerShortcuts();
 
   // 注释掉不存在的UI方法调用
   // await UIExampleFactory.registerExtraColumn();
@@ -53,45 +53,44 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     `${addon.data.config.addonRef}-mainWindow.ftl`,
   );
 
-  const popupWin = new ztoolkit.ProgressWindow(addon.data.config.addonName, {
-    closeOnClick: true,
-    closeTime: -1,
-  })
-    .createLine({
-      text: getString("startup-begin"),
-      type: "default",
-      progress: 0,
-    })
-    .show();
+  // const popupWin = new ztoolkit.ProgressWindow(addon.data.config.addonName, {
+  //   closeOnClick: true,
+  //   closeTime: -1,
+  // })
+  //   .createLine({
+  //     text: getString("startup-begin"),
+  //     type: "default",
+  //     progress: 0,
+  //   })
+  //   .show();
 
-  await Zotero.Promise.delay(1000);
-  popupWin.changeLine({
-    progress: 30,
-    text: `[30%] ${getString("startup-begin")}`,
-  });
+  // await Zotero.Promise.delay(1000);
+  // popupWin.changeLine({
+  //   progress: 30,
+  //   text: `[30%] ${getString("startup-begin")}`,
+  // });
 
-  UIExampleFactory.registerStyleSheet(win);
+  // UIExampleFactory.registerStyleSheet(win);
 
-  UIExampleFactory.registerRightClickMenuItem();
+  // UIExampleFactory.registerRightClickMenuItem();
 
-  // 注释掉不存在的方法
   // UIExampleFactory.registerRightClickMenuPopup(win);
 
-  UIExampleFactory.registerWindowMenuWithSeparator();
+  // UIExampleFactory.registerWindowMenuWithSeparator();
 
-  PromptExampleFactory.registerNormalCommandExample();
+  // PromptExampleFactory.registerNormalCommandExample();
 
-  PromptExampleFactory.registerAnonymousCommandExample(win);
+  // PromptExampleFactory.registerAnonymousCommandExample(win);
 
-  PromptExampleFactory.registerConditionalCommandExample();
+  // PromptExampleFactory.registerConditionalCommandExample();
 
   await Zotero.Promise.delay(1000);
 
-  popupWin.changeLine({
-    progress: 100,
-    text: `[100%] ${getString("startup-finish")}`,
-  });
-  popupWin.startCloseTimer(5000);
+  // popupWin.changeLine({
+  //   progress: 100,
+  //   text: `[100%] ${getString("startup-finish")}`,
+  // });
+  // popupWin.startCloseTimer(5000);
 
   // addon.hooks.onDialogEvents("dialogExample");
 
@@ -153,9 +152,6 @@ async function onPrefsEvent(type: string, data: { [key: string]: any }) {
       break;
     case "loadZoteroCollections":
       await loadZoteroCollections();
-      break;
-    case "syncNow":
-      await syncNow();
       break;
     case "loadDifyKnowledgeBases":
       await loadDifyKnowledgeBasesToPreferencesUI();
