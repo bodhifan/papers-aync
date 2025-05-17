@@ -445,55 +445,72 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
         updateDescription(`正在查找附件...`, i, selectedZoteroItems.length);
         itemProgress.setProgress(10);
         ztoolkit.log(`Processing item: ${zItem.key} - ${itemTitle}`);
-        const attachments = await zItem.getAttachments(false);
-        ztoolkit.log(
-          `Found ${attachments.length} attachment IDs for item ${zItem.key}`,
-        );
 
-        // 1. 优先尝试查找 PDF 附件
-        for (const attachmentID of attachments) {
-          const attachment = await Zotero.Items.getAsync(attachmentID);
-          if (
-            attachment &&
-            attachment.attachmentContentType === "application/pdf"
-          ) {
-            const filePath = await attachment.getFilePathAsync();
-            if (filePath) {
-              fileToUploadPath = filePath;
-              mimeToUse = "application/pdf";
-              resolvedAttachmentFilename = attachment.attachmentFilename;
-              ztoolkit.log(
-                `PDF attachment found and selected: ${fileToUploadPath}`,
-              );
-              break;
+        // 检查当前项是否是附件
+        if (zItem.isAttachment()) {
+          const filePath = await zItem.getFilePathAsync();
+          if (filePath) {
+            fileToUploadPath = filePath;
+            mimeToUse = zItem.attachmentContentType;
+            resolvedAttachmentFilename = zItem.attachmentFilename;
+            ztoolkit.log(
+              `Current item is an attachment: ${fileToUploadPath}, type: ${mimeToUse}`,
+            );
+          }
+        } else {
+          // 如果不是附件，则尝试获取其附件
+          const attachments = await zItem.getAttachments(false);
+          ztoolkit.log(
+            `Found ${attachments.length} attachment IDs for item ${zItem.key}`,
+          );
+
+          // 1. 获取所有附件
+          for (const attachmentID of attachments) {
+            const attachment = await Zotero.Items.getAsync(attachmentID);
+            if (attachment) {
+              const filePath = await attachment.getFilePathAsync();
+              if (filePath) {
+                fileToUploadPath = filePath;
+                mimeToUse = attachment.attachmentContentType;
+                resolvedAttachmentFilename = attachment.attachmentFilename;
+                ztoolkit.log(
+                  `Attachment found and selected: ${fileToUploadPath}, type: ${mimeToUse}`,
+                );
+                break;
+              }
             }
           }
         }
 
-        // 2. 如果没有找到 PDF，再尝试查找 TXT 附件
-        if (!fileToUploadPath) {
-          for (const attachmentID of attachments) {
-            const attachment = await Zotero.Items.getAsync(attachmentID);
-            if (attachment) {
-              const contentType = attachment.attachmentContentType;
-              const filename = attachment.attachmentFilename;
-              if (
-                contentType === "text/plain" ||
-                (filename && filename.toLowerCase().endsWith(".txt"))
-              ) {
-                const filePath = await attachment.getFilePathAsync();
-                if (filePath) {
-                  fileToUploadPath = filePath;
-                  mimeToUse = "text/plain";
-                  resolvedAttachmentFilename = attachment.attachmentFilename;
-                  ztoolkit.log(
-                    `TXT attachment found and selected: ${fileToUploadPath}`,
-                  );
-                  break;
-                }
-              }
-            }
+        // 3. 如果是caj格式
+        if (fileToUploadPath) {
+          const fileExtension = fileToUploadPath
+            .split(".")
+            .pop()
+            ?.toLowerCase();
+          const supportedFormats = ["pdf", "txt", "md"];
+
+          if (!fileExtension || !supportedFormats.includes(fileExtension)) {
+            const itemProgress = new progressWin.ItemProgress(
+              `不支持的文件格式: ${fileExtension || "未知格式"}。仅支持 PDF、TXT 和 MD 格式。`,
+              "不支持的文件格式",
+            );
+            itemProgress.setError();
+            failedItems.push({
+              title: itemTitle,
+              reason: "不支持的文件格式",
+            });
+            failedCount++;
+            continue; // 跳过当前文件，继续处理下一个
           }
+        } else {
+          itemProgress.setError();
+          failedItems.push({
+            title: itemTitle,
+            reason: "没有附件",
+          });
+          failedCount++;
+          continue; // 跳过当前文件，继续处理下一个
         }
       }
       // 检查文件大小是否超过15MB
