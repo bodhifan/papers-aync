@@ -9,6 +9,13 @@ declare namespace _ZoteroTypes {
     PluginPrefsMap: {
       "enable": boolean;
       "input": string;
+      "dify-api-key": string;
+      "dify-base-url": string;
+      "dify-kb-id": string;
+      "include-subcollections": boolean;
+      "selected-collections": string;
+      "auto-sync-interval": number;
+      "last-sync-time": string;
     };
   }
 }

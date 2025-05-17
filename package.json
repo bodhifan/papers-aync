@@ -1,14 +1,14 @@
 {
-  "name": "zotero-plugin-template",
+  "name": "zotero-orsalab-sync",
   "type": "module",
-  "version": "3.1.0",
-  "description": "Zotero Plugin Template",
+  "version": "0.1.0",
+  "description": "Zotero-OrsaLab PDF 同步插件，用于将 Zotero 中的 PDF 文档及其元数据自动同步到 OrsaLab 知识库",
   "config": {
-    "addonName": "Zotero Plugin Template",
-    "addonID": "addontemplate@euclpts.com",
-    "addonRef": "addontemplate",
-    "addonInstance": "AddonTemplate",
-    "prefsPrefix": "extensions.zotero.addontemplate"
+    "addonName": "Zotero-OrsaLab Sync",
+    "addonID": "zotero-orsalab-sync@example.com",
+    "addonRef": "zoterodifysync",
+    "addonInstance": "ZoteroDifySync",
+    "prefsPrefix": "extensions.zotero.zotero-orsalab-sync"
   },
   "repository": {
     "type": "git",
