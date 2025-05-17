@@ -11,7 +11,6 @@ import {
   loadDifyKnowledgeBasesToPreferencesUI,
   loadZoteroCollections,
   registerPrefsScripts,
-  syncNow,
   testDifyConnection,
   extractItemMetadata,
   uploadToDify,
@@ -33,15 +32,12 @@ async function onStartup() {
 
   KeyExampleFactory.registerShortcuts();
 
-  await UIExampleFactory.registerExtraColumn();
-
-  await UIExampleFactory.registerExtraColumnWithCustomCell();
-
-  UIExampleFactory.registerItemPaneCustomInfoRow();
-
-  UIExampleFactory.registerItemPaneSection();
-
-  UIExampleFactory.registerReaderItemPaneSection();
+  // 注释掉不存在的UI方法调用
+  // await UIExampleFactory.registerExtraColumn();
+  // await UIExampleFactory.registerExtraColumnWithCustomCell();
+  // UIExampleFactory.registerItemPaneCustomInfoRow();
+  // UIExampleFactory.registerItemPaneSection();
+  // UIExampleFactory.registerReaderItemPaneSection();
 
   await Promise.all(
     Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
@@ -78,7 +74,8 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 
   UIExampleFactory.registerRightClickMenuItem();
 
-  UIExampleFactory.registerRightClickMenuPopup(win);
+  // 注释掉不存在的方法
+  // UIExampleFactory.registerRightClickMenuPopup(win);
 
   UIExampleFactory.registerWindowMenuWithSeparator();
 
@@ -96,7 +93,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
   });
   popupWin.startCloseTimer(5000);
 
-  addon.hooks.onDialogEvents("dialogExample");
+  // addon.hooks.onDialogEvents("dialogExample");
 
   registerKnowledgeBaseSyncMenu(win);
 }
@@ -297,7 +294,6 @@ function registerKnowledgeBaseSyncMenu(win: _ZoteroTypes.MainWindow) {
         const kbItem = doc.createXULElement("menuitem");
         kbItem.setAttribute("label", kb.name);
         kbItem.setAttribute("value", kb.id); // 将知识库ID存在value属性
-        kbItem.setAttribute("class", "menuitem-iconic");
         // 注意: oncommand 属性直接设置字符串时，需要确保 addon.hooks.handleSyncToKnowledgeBaseCommand 能被全局访问
         // 或者使用 addEventListener。为简单起见，先用 oncommand 字符串。
         kbItem.setAttribute(
@@ -389,102 +385,156 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
   }
 
   const progressWin = new Zotero.ProgressWindow();
-  progressWin.changeHeadline("同步到知识库...");
+  progressWin.changeHeadline("正在同步到知识库...");
   progressWin.show();
 
   let successCount = 0;
   let failedCount = 0;
+  const failedItems: Array<{ title: string; reason: string }> = [];
+
+  // 添加更新描述的函数
+  const updateDescription = (
+    text: string,
+    currentIndex: number,
+    totalItems: number,
+  ) => {
+    // 更新标题
+    progressWin.changeHeadline(
+      `同步到知识库... (${currentIndex + 1}/${totalItems})`,
+    );
+    // 添加新的描述
+    // progressWin.addDescription(text);
+  };
 
   try {
     for (let i = 0; i < selectedZoteroItems.length; i++) {
       const zItem = selectedZoteroItems[i];
+      const itemTitle = zItem.getField("title") || "未知条目";
 
-      // 初始化 itemProgress 移到 zItem 确定后，但在 continue 之前可能访问它之前
-      // 如果条目无效，我们仍然想更新它的进度状态为错误
+      // 更新进度窗口标题，显示当前处理的文件
+      updateDescription(
+        `当前处理: ${itemTitle}`,
+        i,
+        selectedZoteroItems.length,
+      );
+
+      // 创建进度条项
       const itemProgress = new progressWin.ItemProgress(
-        `正在处理: ${zItem.getField("title") || "未知条目"}`,
+        `正在处理: ${itemTitle}`,
         "",
       );
-
-      if (!zItem.isRegularItem()) {
-        ztoolkit.log(`Item ${zItem.key} is not a regular item, skipping.`);
-        itemProgress.setText("非标准条目，已跳过");
-        itemProgress.setError(); // 标记为错误状态
-        failedCount++; // 将非标准条目也计为失败
-        continue;
-      }
-
-      itemProgress.setText(`获取附件信息: ${zItem.getField("title")}`);
-      ztoolkit.log(
-        `Processing item: ${zItem.key} - ${zItem.getField("title")}`,
-      );
-      const attachments = await zItem.getAttachments(false);
-      ztoolkit.log(
-        `Found ${attachments.length} attachment IDs for item ${zItem.key}`,
-      );
+      const truncatedTitle =
+        itemTitle.length > 10 ? itemTitle.substring(0, 20) + "..." : itemTitle;
+      itemProgress.setText(`正在同步: ${truncatedTitle}`);
+      itemProgress.setProgress(0);
 
       let fileToUploadPath: string | null = null;
       let mimeToUse: string | null = null;
       let resolvedAttachmentFilename: string | null = null;
 
-      // 1. 优先尝试查找 PDF 附件
-      for (const attachmentID of attachments) {
-        const attachment = await Zotero.Items.getAsync(attachmentID);
-        if (
-          attachment &&
-          attachment.attachmentContentType === "application/pdf"
-        ) {
-          const filePath = await attachment.getFilePathAsync();
-          if (filePath) {
-            fileToUploadPath = filePath;
-            mimeToUse = "application/pdf";
-            resolvedAttachmentFilename = attachment.attachmentFilename;
-            ztoolkit.log(
-              `PDF attachment found and selected: ${fileToUploadPath}`,
-            );
-            break;
-          }
+      // 检查当前项是否是 PDF 文件
+      if (
+        zItem.isAttachment() &&
+        zItem.attachmentContentType === "application/pdf"
+      ) {
+        const filePath = await zItem.getFilePathAsync();
+        if (filePath) {
+          fileToUploadPath = filePath;
+          mimeToUse = "application/pdf";
+          resolvedAttachmentFilename = zItem.attachmentFilename;
+          ztoolkit.log(`Current item is a PDF file: ${fileToUploadPath}`);
         }
-      }
+      } else {
+        // 如果不是 PDF 文件，则尝试获取附件
+        updateDescription(`正在查找附件...`, i, selectedZoteroItems.length);
+        itemProgress.setProgress(10);
+        ztoolkit.log(`Processing item: ${zItem.key} - ${itemTitle}`);
+        const attachments = await zItem.getAttachments(false);
+        ztoolkit.log(
+          `Found ${attachments.length} attachment IDs for item ${zItem.key}`,
+        );
 
-      // 2. 如果没有找到 PDF，再尝试查找 TXT 附件
-      if (!fileToUploadPath) {
+        // 1. 优先尝试查找 PDF 附件
         for (const attachmentID of attachments) {
           const attachment = await Zotero.Items.getAsync(attachmentID);
-          if (attachment) {
-            const contentType = attachment.attachmentContentType;
-            const filename = attachment.attachmentFilename;
-            if (
-              contentType === "text/plain" ||
-              (filename && filename.toLowerCase().endsWith(".txt"))
-            ) {
-              const filePath = await attachment.getFilePathAsync();
-              if (filePath) {
-                fileToUploadPath = filePath;
-                mimeToUse = "text/plain";
-                resolvedAttachmentFilename = attachment.attachmentFilename;
-                ztoolkit.log(
-                  `TXT attachment found and selected: ${fileToUploadPath}`,
-                );
-                break;
+          if (
+            attachment &&
+            attachment.attachmentContentType === "application/pdf"
+          ) {
+            const filePath = await attachment.getFilePathAsync();
+            if (filePath) {
+              fileToUploadPath = filePath;
+              mimeToUse = "application/pdf";
+              resolvedAttachmentFilename = attachment.attachmentFilename;
+              ztoolkit.log(
+                `PDF attachment found and selected: ${fileToUploadPath}`,
+              );
+              break;
+            }
+          }
+        }
+
+        // 2. 如果没有找到 PDF，再尝试查找 TXT 附件
+        if (!fileToUploadPath) {
+          for (const attachmentID of attachments) {
+            const attachment = await Zotero.Items.getAsync(attachmentID);
+            if (attachment) {
+              const contentType = attachment.attachmentContentType;
+              const filename = attachment.attachmentFilename;
+              if (
+                contentType === "text/plain" ||
+                (filename && filename.toLowerCase().endsWith(".txt"))
+              ) {
+                const filePath = await attachment.getFilePathAsync();
+                if (filePath) {
+                  fileToUploadPath = filePath;
+                  mimeToUse = "text/plain";
+                  resolvedAttachmentFilename = attachment.attachmentFilename;
+                  ztoolkit.log(
+                    `TXT attachment found and selected: ${fileToUploadPath}`,
+                  );
+                  break;
+                }
               }
             }
           }
         }
       }
-
+      // 检查文件大小是否超过15MB
+      //@ts-ignore
+      const fileSize = await IOUtils.stat(fileToUploadPath);
+      //@ts-ignore
+      if (fileSize.size > 15 * 1024 * 1024) {
+        const itemProgress = new progressWin.ItemProgress(
+          `文件过大: ${itemTitle}`,
+          "文件大小超过15MB，无法上传",
+        );
+        itemProgress.setError();
+        failedItems.push({
+          title: itemTitle,
+          reason: "文件大小超过15MB",
+        });
+        failedCount++;
+        continue; // 跳过当前文件，继续处理下一个
+      }
       if (fileToUploadPath && mimeToUse && resolvedAttachmentFilename) {
         ztoolkit.log(
           `Valid attachment found for item ${zItem.key}: ${fileToUploadPath} (type: ${mimeToUse})`,
         );
         try {
-          itemProgress.setText(`提取元数据: ${zItem.getField("title")}`);
+          updateDescription(`正在提取元数据...`, i, selectedZoteroItems.length);
+          itemProgress.setProgress(20);
           ztoolkit.log(`Extracting metadata for ${zItem.key}`);
           const metadata = extractItemMetadata(zItem);
           ztoolkit.log(`Metadata extracted for ${zItem.key}:`, metadata);
           itemProgress.setProgress(30);
 
-          itemProgress.setText(`准备上传: ${resolvedAttachmentFilename}`); // 使用解析到的文件名
+          updateDescription(
+            `正在上传: ${resolvedAttachmentFilename}`,
+            i,
+            selectedZoteroItems.length,
+          );
+          itemProgress.setProgress(40);
           ztoolkit.log(
             `Preparing to upload ${fileToUploadPath} for item ${zItem.key}`,
           );
@@ -512,13 +562,18 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
             currentWindowContext,
             mimeToUse,
           );
+
+          itemProgress.setProgress(100);
+          updateDescription(
+            `上传成功: ${resolvedAttachmentFilename}`,
+            i,
+            selectedZoteroItems.length,
+          );
           ztoolkit.log(
             `Successfully uploaded ${resolvedAttachmentFilename} (${mimeToUse}) for item ${zItem.key}`,
           );
-          itemProgress.setProgress(100);
           successCount++;
         } catch (uploadError) {
-          failedCount++;
           const errorMessage =
             uploadError instanceof Error
               ? uploadError.message
@@ -526,16 +581,34 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
           Zotero.debug(
             `[${addon.data.config.addonRef}] Failed to sync item ${zItem.key} (${resolvedAttachmentFilename}, type: ${mimeToUse}). Error: ${errorMessage}`,
           );
-          itemProgress.setText(`上传失败: ${errorMessage.substring(0, 50)}...`);
+          updateDescription(
+            `上传失败: ${resolvedAttachmentFilename}`,
+            i,
+            selectedZoteroItems.length,
+          );
           itemProgress.setError();
+          // 添加到失败列表，提取错误标题
+          const errorTitle = errorMessage.includes("<title>")
+            ? errorMessage.match(/<title>(.*?)<\/title>/)?.[1] || errorMessage
+            : errorMessage;
+          failedItems.push({
+            title: itemTitle,
+            reason: errorTitle,
+          });
+          failedCount++;
         }
       } else {
         ztoolkit.log(
           `No valid PDF or TXT attachment found for item ${zItem.key}`,
         );
-        itemProgress.setText("未找到PDF或TXT附件");
+        updateDescription("未找到PDF或TXT附件", i, selectedZoteroItems.length);
         itemProgress.setError();
         failedCount++;
+        // 添加到失败列表
+        failedItems.push({
+          title: itemTitle,
+          reason: "未找到PDF或TXT附件",
+        });
       }
     }
   } finally {
@@ -552,13 +625,24 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
   let finalMessage = `同步完成。成功: ${successCount}，失败: ${failedCount}。`;
   if (failedCount > 0 && successCount === 0) {
     finalMessage = `所有条目同步失败。失败: ${failedCount}。请检查错误日志。`;
-    if (finalWindowContext)
-      finalWindowContext.alert(finalMessage + " 点击查看日志中的详细信息。");
+    if (finalWindowContext) {
+      // 显示失败列表
+      const failedList = failedItems
+        .map((item) => `- ${item.title}\n  原因: ${item.reason}`)
+        .join("\n");
+      finalWindowContext.alert(finalMessage + "\n\n失败项列表:\n" + failedList);
+    }
     Zotero.debug(
       `[${addon.data.config.addonRef}] Knowledge base sync critical errors: ${finalMessage}`,
     );
   } else if (failedCount > 0) {
-    if (finalWindowContext) finalWindowContext.alert(finalMessage);
+    if (finalWindowContext) {
+      // 显示失败列表
+      const failedList = failedItems
+        .map((item) => `- ${item.title}\n  原因: ${item.reason}`)
+        .join("\n");
+      finalWindowContext.alert(finalMessage + "\n\n失败项列表:\n" + failedList);
+    }
     Zotero.debug(
       `[${addon.data.config.addonRef}] Knowledge base sync warnings: ${finalMessage}`,
     );
@@ -569,4 +653,5 @@ async function handleSyncToKnowledgeBaseCommand(event: Event) {
     );
   }
   ztoolkit.log(finalMessage);
+  finalWindowContext?.show();
 }

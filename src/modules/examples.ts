@@ -136,40 +136,40 @@ export class UIExampleFactory {
     doc.getElementById("zotero-item-pane-content")?.classList.add("makeItRed");
   }
 
-  @example
-  static registerRightClickMenuItem() {
-    const menuIcon = `chrome://${addon.data.config.addonRef}/content/icons/favicon@0.5x.png`;
-    // item menuitem with icon
-    ztoolkit.Menu.register("item", {
-      tag: "menuitem",
-      id: "zotero-itemmenu-addontemplate-test",
-      label: getString("menuitem-label"),
-      commandListener: (ev) => addon.hooks.onDialogEvents("dialogExample"),
-      icon: menuIcon,
-    });
-  }
+  // @example
+  // static registerRightClickMenuItem() {
+  //   const menuIcon = `chrome://${addon.data.config.addonRef}/content/icons/favicon@0.5x.png`;
+  //   // item menuitem with icon
+  //   ztoolkit.Menu.register("item", {
+  //     tag: "menuitem",
+  //     id: "zotero-itemmenu-addontemplate-test",
+  //     label: getString("menuitem-label"),
+  //     commandListener: (ev) => addon.hooks.onDialogEvents("dialogExample"),
+  //     icon: menuIcon,
+  //   });
+  // }
 
-  @example
-  static registerRightClickMenuPopup(win: Window) {
-    ztoolkit.Menu.register(
-      "item",
-      {
-        tag: "menu",
-        label: getString("menupopup-label"),
-        children: [
-          {
-            tag: "menuitem",
-            label: getString("menuitem-submenulabel"),
-            oncommand: "alert('Hello World! Sub Menuitem.')",
-          },
-        ],
-      },
-      "before",
-      win.document?.querySelector(
-        "#zotero-itemmenu-addontemplate-test",
-      ) as XUL.MenuItem,
-    );
-  }
+  // @example
+  // static registerRightClickMenuPopup(win: Window) {
+  //   ztoolkit.Menu.register(
+  //     "item",
+  //     {
+  //       tag: "menu",
+  //       label: getString("menupopup-label"),
+  //       children: [
+  //         {
+  //           tag: "menuitem",
+  //           label: getString("menuitem-submenulabel"),
+  //           oncommand: "alert('Hello World! Sub Menuitem.')",
+  //         },
+  //       ],
+  //     },
+  //     "before",
+  //     win.document?.querySelector(
+  //       "#zotero-itemmenu-addontemplate-test",
+  //     ) as XUL.MenuItem,
+  //   );
+  // }
 
   @example
   static registerWindowMenuWithSeparator() {
@@ -184,59 +184,59 @@ export class UIExampleFactory {
     });
   }
 
-  @example
-  static async registerExtraColumn() {
-    const field = "test1";
-    await Zotero.ItemTreeManager.registerColumns({
-      pluginID: addon.data.config.addonID,
-      dataKey: field,
-      label: "text column",
-      dataProvider: (item: Zotero.Item, dataKey: string) => {
-        return field + String(item.id);
-      },
-      iconPath: "chrome://zotero/skin/cross.png",
-    });
-  }
+  // @example
+  // static async registerExtraColumn() {
+  //   const field = "test1";
+  //   await Zotero.ItemTreeManager.registerColumns({
+  //     pluginID: addon.data.config.addonID,
+  //     dataKey: field,
+  //     label: "text column",
+  //     dataProvider: (item: Zotero.Item, dataKey: string) => {
+  //       return field + String(item.id);
+  //     },
+  //     iconPath: "chrome://zotero/skin/cross.png",
+  //   });
+  // }
 
-  @example
-  static async registerExtraColumnWithCustomCell() {
-    const field = "test2";
-    await Zotero.ItemTreeManager.registerColumns({
-      pluginID: addon.data.config.addonID,
-      dataKey: field,
-      label: "custom column",
-      dataProvider: (item: Zotero.Item, dataKey: string) => {
-        return field + String(item.id);
-      },
-      renderCell(index, data, column, isFirstColumn, doc) {
-        ztoolkit.log("Custom column cell is rendered!");
-        const span = doc.createElement("span");
-        span.className = `cell ${column.className}`;
-        span.style.background = "#0dd068";
-        span.innerText = "⭐" + data;
-        return span;
-      },
-    });
-  }
+  // @example
+  // static async registerExtraColumnWithCustomCell() {
+  //   const field = "test2";
+  //   await Zotero.ItemTreeManager.registerColumns({
+  //     pluginID: addon.data.config.addonID,
+  //     dataKey: field,
+  //     label: "custom column",
+  //     dataProvider: (item: Zotero.Item, dataKey: string) => {
+  //       return field + String(item.id);
+  //     },
+  //     renderCell(index, data, column, isFirstColumn, doc) {
+  //       ztoolkit.log("Custom column cell is rendered!");
+  //       const span = doc.createElement("span");
+  //       span.className = `cell ${column.className}`;
+  //       span.style.background = "#0dd068";
+  //       span.innerText = "⭐" + data;
+  //       return span;
+  //     },
+  //   });
+  // }
 
-  @example
-  static registerItemPaneCustomInfoRow() {
-    Zotero.ItemPaneManager.registerInfoRow({
-      rowID: "example",
-      pluginID: addon.data.config.addonID,
-      editable: true,
-      label: {
-        l10nID: getLocaleID("item-info-row-example-label"),
-      },
-      position: "afterCreators",
-      onGetData: ({ item }) => {
-        return item.getField("title");
-      },
-      onSetData: ({ item, value }) => {
-        item.setField("title", value);
-      },
-    });
-  }
+  // @example
+  // static registerItemPaneCustomInfoRow() {
+  //   Zotero.ItemPaneManager.registerInfoRow({
+  //     rowID: "example",
+  //     pluginID: addon.data.config.addonID,
+  //     editable: true,
+  //     label: {
+  //       l10nID: getLocaleID("item-info-row-example-label"),
+  //     },
+  //     position: "afterCreators",
+  //     onGetData: ({ item }) => {
+  //       return item.getField("title");
+  //     },
+  //     onSetData: ({ item, value }) => {
+  //       item.setField("title", value);
+  //     },
+  //   });
+  // }
 
   @example
   static registerItemPaneSection() {

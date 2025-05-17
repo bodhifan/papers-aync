@@ -1,3 +1,14 @@
 .makeItRed {
   background-color: tomato;
 }
+
+.menulist-with-icon {
+  -moz-box-align: center;
+  padding-left: 5px;
+}
+
+.menulist-with-icon .menulist-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+}

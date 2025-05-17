@@ -2,45 +2,38 @@
  * @Author: bodhi
  * @Date: 2025-05-15 20:33:39
  * @LastEditors: bodhi
- * @LastEditTime: 2025-05-15 21:39:57
+ * @LastEditTime: 2025-05-17 17:37:24
  * @FilePath: \papers-aync\addon\content\preferences.xhtml
 -->
 <linkset>
-  <html:link rel="localization" href="__addonRef__-preferences.ftl" />
+  <html:link rel="localization" href="zoterodifysync-preferences.ftl" />
+  <html:link rel="stylesheet" href="chrome://zoterodifysync/content/zoteroPane.css" />
 </linkset>
 <groupbox
-  onload="Zotero.__addonInstance__.hooks.onPrefsEvent('load', { window });"
->
-  <label><html:h2 data-l10n-id="pref-title"></html:h2></label>
-  <checkbox
-    id="zotero-prefpane-__addonRef__-enable"
-    preference="enable"
-    data-l10n-id="pref-enable"
-  />
-  
+  onload="Zotero.ZoteroDifySync.hooks.onPrefsEvent('load', { window });"
+>  
   <!-- Dify API 设置区域 -->
   <groupbox>
-    <label><html:h3 data-l10n-id="pref-dify-config-title">OrsaLab API 设置</html:h3></label>
     <hbox align="center">
       <html:label
-        for="zotero-prefpane-__addonRef__-dify-api-key"
+        for="zotero-prefpane-zoterodifysync-dify-api-key"
         data-l10n-id="pref-dify-api-key"
       >API Key:</html:label>
       <html:input
         type="password"
-        id="zotero-prefpane-__addonRef__-dify-api-key"
+        id="zotero-prefpane-zoterodifysync-dify-api-key"
         preference="dify-api-key"
         style="min-width: 350px;"
       ></html:input>
     </hbox>
     <hbox align="center">
       <html:label
-        for="zotero-prefpane-__addonRef__-dify-base-url"
+        for="zotero-prefpane-zoterodifysync-dify-base-url"
         data-l10n-id="pref-dify-base-url"
       >服务器 URL:</html:label>
       <html:input
         type="text"
-        id="zotero-prefpane-__addonRef__-dify-base-url"
+        id="zotero-prefpane-zoterodifysync-dify-base-url"
         preference="dify-base-url"
         placeholder="http://www.orsalab.cn/api/v1"
         style="min-width: 350px;"
@@ -48,132 +41,37 @@
     </hbox>
     <hbox align="center">
       <html:label
-        for="zotero-prefpane-__addonRef__-dify-kb-id"
+        for="zotero-prefpane-zoterodifysync-dify-kb-id"
         data-l10n-id="pref-dify-kb-id"
       >知识库:</html:label>
       <hbox flex="1">
         <menulist 
-          id="zotero-prefpane-__addonRef__-dify-kb-id"
+          id="zotero-prefpane-zoterodifysync-dify-kb-id"
           preference="dify-kb-id"
           flex="1"
           style="min-width: 300px;"
         >
-          <menupopup id="zotero-prefpane-__addonRef__-dify-kb-list">
+          <menupopup id="zotero-prefpane-zoterodifysync-dify-kb-list">
             <!-- 这里会动态填充知识库列表 -->
           </menupopup>
         </menulist>
         <button 
-          id="zotero-prefpane-__addonRef__-load-kb"
+          id="zotero-prefpane-zoterodifysync-load-kb"
           label="刷新"
           data-l10n-id="pref-load-kb" 
-          oncommand="Zotero.__addonInstance__.hooks.onPrefsEvent('loadDifyKnowledgeBases', { window });"
+          oncommand="Zotero.ZoteroDifySync.hooks.onPrefsEvent('loadDifyKnowledgeBases', { window });"
           style="margin-left: 5px;"
         />
       </hbox>
     </hbox>
     <hbox pack="end" style="margin-top: 10px;">
       <button 
-        id="zotero-prefpane-__addonRef__-test-connection"
+        id="zotero-prefpane-zoterodifysync-test-connection"
         label="测试连接"
         data-l10n-id="pref-test-connection" 
-        oncommand="Zotero.__addonInstance__.hooks.onPrefsEvent('testDifyConnection', { window });"
+        oncommand="Zotero.ZoteroDifySync.hooks.onPrefsEvent('testDifyConnection', { window });"
       />
     </hbox>
-    <description id="zotero-prefpane-__addonRef__-connection-status"></description>
+    <description id="zotero-prefpane-zoterodifysync-connection-status"></description>
   </groupbox>
-  
-  <!-- Zotero 分类选择区域 -->
-  <groupbox>
-    <label><html:h3 data-l10n-id="pref-collection-select-title">Zotero 分类选择</html:h3></label>
-    <description data-l10n-id="pref-collection-select-desc">选择要同步到 Dify 的 Zotero 分类。</description>
-    
-    <!-- 加载分类按钮 -->
-    <hbox pack="start" style="margin-bottom: 10px;">
-      <button 
-        id="zotero-prefpane-__addonRef__-load-collections"
-        label="加载分类"
-        data-l10n-id="pref-load-collections" 
-        oncommand="Zotero.__addonInstance__.hooks.onPrefsEvent('loadZoteroCollections', { window });"
-      />
-    </hbox>
-    
-    <!-- 分类树形显示区域 -->
-    <hbox flex="1" height="250px">
-      <tree 
-        id="zotero-prefpane-__addonRef__-collections-tree" 
-        flex="1"
-        seltype="multiple"
-        hidecolumnpicker="true"
-        enableColumnDrag="false"
-        style="min-height: 250px; border: 1px solid #ccc;"
-      >
-        <treecols>
-          <treecol id="zotero-prefpane-__addonRef__-collections-tree-name" 
-                   label="分类名称" 
-                   data-l10n-id="pref-collection-name"
-                   flex="1" 
-                   primary="true"/>
-          <treecol id="zotero-prefpane-__addonRef__-collections-tree-items" 
-                   label="文献数量" 
-                   data-l10n-id="pref-collection-items"
-                   width="80"/>
-        </treecols>
-        <treechildren id="zotero-prefpane-__addonRef__-collections-tree-children" />
-      </tree>
-    </hbox>
-    
-    <!-- 包含子分类选项 -->
-    <checkbox
-      id="zotero-prefpane-__addonRef__-include-subcollections"
-      preference="include-subcollections"
-      data-l10n-id="pref-include-subcollections"
-      label="包含所选分类的子分类"
-    />
-    
-    <!-- 同步控制区域 -->
-    <hbox pack="end" style="margin-top: 15px;">
-      <button 
-        id="zotero-prefpane-__addonRef__-sync-now"
-        label="立即同步"
-        data-l10n-id="pref-sync-now" 
-        oncommand="Zotero.__addonInstance__.hooks.onPrefsEvent('syncNow', { window });"
-        style="margin-right: 10px;"
-      />
-      <menulist 
-        id="zotero-prefpane-__addonRef__-auto-sync-interval" 
-        preference="auto-sync-interval"
-      >
-        <menupopup>
-          <menuitem value="0" data-l10n-id="pref-sync-never" label="从不"/>
-          <menuitem value="1" data-l10n-id="pref-sync-daily" label="每天"/>
-          <menuitem value="7" data-l10n-id="pref-sync-weekly" label="每周"/>
-          <menuitem value="30" data-l10n-id="pref-sync-monthly" label="每月"/>
-        </menupopup>
-      </menulist>
-    </hbox>
-    
-    <!-- 同步状态显示 -->
-    <description id="zotero-prefpane-__addonRef__-sync-status" style="margin-top: 5px;"></description>
-  </groupbox>
-  
-  <hbox>
-    <html:label
-      for="zotero-prefpane-__addonRef__-input"
-      data-l10n-id="pref-input"
-    ></html:label>
-    <html:input
-      type="text"
-      id="zotero-prefpane-__addonRef__-input"
-      preference="input"
-    ></html:input>
-  </hbox>
-  <hbox class="virtualized-table-container" flex="1" height="300px">
-    <html:div id="__addonRef__-table-container" />
-  </hbox>
 </groupbox>
-<vbox>
-  <html:label
-    data-l10n-id="pref-help"
-    data-l10n-args='{"time": "__buildTime__","name": "__addonName__","version":"__buildVersion__"}'
-  ></html:label>
-</vbox>
